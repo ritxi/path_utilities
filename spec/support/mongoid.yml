@@ -1,0 +1,12 @@
+development:
+  sessions:
+    default:
+      database: path_utilities_dev
+      hosts:
+        - localhost:27017
+test:
+  sessions:
+    default:
+      database: path_utilities_test
+      hosts:
+        - localhost:27017
