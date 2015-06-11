@@ -21,6 +21,7 @@ module PathUtilities
       def initialize(models_mapping = {})
         @models_mapping = models_mapping
         validate_mapping!
+        init_sync
       end
 
       def validate_mapping!
@@ -62,6 +63,13 @@ module PathUtilities
       def instance_model_for(field)
         model = self.class.fields[field].options[:klass].name.underscore.to_sym
         models_mapping[model]
+      end
+
+      def init_sync
+        self.class.fields.keys.each do |field|
+          model_value = instance_model_for(field).send("#{field}")
+          send("#{field}=", model_value)
+        end
       end
 
       def persist!

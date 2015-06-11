@@ -32,6 +32,13 @@ describe PathUtilities::Form do
         it { expect { subject }.not_to raise_error }
       end
     end
+
+    describe 'syncronize model fields with form' do
+      let(:model) { MongoidTestUser.new(data_params) }
+      subject { form }
+      its(:login) { is_expected.to eq('ricard') }
+      its(:name) { is_expected.to eq('Ricard') }
+    end
   end
 
   describe '#sync' do
