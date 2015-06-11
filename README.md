@@ -22,7 +22,52 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Given a model like this
+
+```ruby
+class User
+  include Mongoid::Document
+
+  field :login
+  field :password
+  field :name
+end
+```
+
+Add a form for validating it
+
+```ruby
+class FormUser
+  include PathUtilities::Form
+
+  properties [:login, :name, :password], :user
+
+  validates_uniqueness_of :login
+  validates_presence_of :name, :password
+end
+```
+
+Perform user validation
+
+```ruby
+class MyController < ApplicationController
+  before_action :build, on: [:new, :create]
+
+  def create
+    if @form.validate(params[:user])
+      @form.save
+      redirect_to sign_in_path
+    else
+      render :new
+    end
+  end
+
+  def build
+    @form = FormUser.new(user: User.new)
+  end
+end
+```
+
 
 ## Development
 
