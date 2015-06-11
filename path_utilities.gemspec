@@ -20,12 +20,12 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = %w(lib)
 
-  spec.add_development_dependency 'byebug'
-  spec.add_development_dependency 'database_cleaner'
+  spec.add_development_dependency 'byebug', '~> 5'
+  spec.add_development_dependency 'database_cleaner', '~> 1.4'
   spec.add_development_dependency 'bundler', '~> 1.9'
   spec.add_development_dependency 'rake', '~> 10.0'
-  spec.add_development_dependency 'rspec'
-  spec.add_development_dependency 'rspec-its'
+  spec.add_development_dependency 'rspec', '~> 3.2'
+  spec.add_development_dependency 'rspec-its', '~> 1.2'
 
   spec.add_dependency 'activemodel', '~> 4.2'
   spec.add_dependency 'activesupport', '~> 4.2'
