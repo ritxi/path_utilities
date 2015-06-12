@@ -11,4 +11,5 @@ class CustomForm
   properties [:login, :name], :mongoid_test_user
 
   validates_uniqueness_of :login
+  validates :login, :name, presence: true
 end

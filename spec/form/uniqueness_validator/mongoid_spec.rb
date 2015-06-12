@@ -32,7 +32,6 @@ describe PathUtilities::Form::UniquenessValidator::Mongoid do
     context 'login available' do
       let(:validation_params) { { login: 'rforniol' } }
 
-      it { is_expected.to be_empty }
       it { is_expected.not_to include(:login) }
     end
   end

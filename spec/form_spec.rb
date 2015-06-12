@@ -41,6 +41,22 @@ describe PathUtilities::Form do
     end
   end
 
+  describe '#validate' do
+    subject { form }
+
+    describe 'new record' do
+      it { expect(subject.validate(data_params)).to be_truthy }
+    end
+
+    describe 'existing record' do
+      let(:model) { MongoidTestUser.new(login: 'hello', name: 'Ricard') }
+      before { subject.validate(login: 'hola') }
+
+      its(:name) { is_expected.to eq('Ricard') }
+      its(:login) { is_expected.to eq('hola') }
+    end
+  end
+
   describe '#sync' do
     before do
       form.validate(data_params)

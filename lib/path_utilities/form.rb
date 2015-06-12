@@ -33,7 +33,7 @@ module PathUtilities
 
       def validate(params)
         self.class.fields.keys.each do |field|
-          send("#{field}=", params[field])
+          send("#{field}=", params[field]) if params[field].present?
         end
 
         valid?
