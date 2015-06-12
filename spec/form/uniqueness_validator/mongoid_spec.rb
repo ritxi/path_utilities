@@ -14,7 +14,7 @@ describe PathUtilities::Form::UniquenessValidator::Mongoid do
   end
 
   describe 'uniqueness validations' do
-    before { MongoidTestUser.create(data_params) }
+    let!(:user) { MongoidTestUser.create(data_params) }
     let!(:validate_form) { form.validate(validation_params) }
     subject { form.errors }
 
@@ -27,6 +27,13 @@ describe PathUtilities::Form::UniquenessValidator::Mongoid do
       it { is_expected.not_to be_empty }
       it { is_expected.to include(:login) }
       it { expect(subject[:login]).to include(already_taken_message) }
+    end
+
+    context 'ensure saved document not to validates itself as repeated' do
+      let(:validation_params) { { name: 'HELLO' } }
+      let(:model) { user }
+
+      it { is_expected.to be_empty }
     end
 
     context 'login available' do

@@ -19,7 +19,7 @@ module PathUtilities
           # If we're inside an ActiveRecord class, and `model` isn't set, use the
           # default behaviour of the validator.
           #
-          elsif ! options[:model]
+          elsif !options[:model]
             super
 
           # Custom validator options. The validator can be called in any class, as
@@ -33,12 +33,16 @@ module PathUtilities
 
             attribute = options[:attribute].to_sym if options[:attribute]
             record = options[:model].new(attribute => value)
+            is_new_record = record_org.instance_model_for(attribute).new_record?
 
-            super
+            if is_new_record || record_org.changes?(attribute)
+              super
 
-            if record.errors.any?
-              record_org.errors.add(attribute_org, :taken,
-                options.except(:case_sensitive, :scope).merge(value: value))
+              if record.errors.any?
+
+                record_org.errors.add(attribute_org, :taken,
+                  options.except(:case_sensitive, :scope).merge(value: value))
+              end
             end
           end
         end
