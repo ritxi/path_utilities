@@ -9,12 +9,14 @@ module PathUtilities
     extend ActiveSupport::Concern
 
     autoload :UniquenessValidator, 'path_utilities/form/uniqueness_validator'
+    autoload :TrackingChanges, 'path_utilities/form/tracking_changes'
 
     included do
       include Virtus.model
       extend ActiveModel::Naming
       include ActiveModel::Conversion
       include ActiveModel::Validations
+      include TrackingChanges
 
       attr_reader :models_mapping
 
@@ -33,7 +35,9 @@ module PathUtilities
 
       def validate(params)
         self.class.fields.keys.each do |field|
-          send("#{field}=", params[field]) if params[field].present?
+          if params[field].present?
+            send("#{field}=", params[field])
+          end
         end
 
         valid?
