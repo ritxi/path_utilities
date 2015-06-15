@@ -20,6 +20,8 @@ module PathUtilities
 
       attr_reader :models_mapping
 
+      delegate :id, :persisted?, :new_record?, to: :main_record
+
       def initialize(models_mapping = {})
         @models_mapping = models_mapping
         validate_mapping!
@@ -43,10 +45,6 @@ module PathUtilities
         end
 
         valid?
-      end
-
-      def persisted?
-        false
       end
 
       def save
@@ -76,6 +74,10 @@ module PathUtilities
           model_value = instance_model_for(field).send("#{field}")
           send("#{field}=", model_value)
         end
+      end
+
+      def main_record
+        models_mapping[self.class.model_name.name.to_sym]
       end
 
       def persist!
