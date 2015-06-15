@@ -50,10 +50,28 @@ describe PathUtilities::Form do
 
     describe 'existing record' do
       let(:model) { MongoidTestUser.new(login: 'hello', name: 'Ricard') }
-      before { subject.validate(login: 'hola') }
+      before { subject.validate(validation_params) }
 
-      its(:name) { is_expected.to eq('Ricard') }
-      its(:login) { is_expected.to eq('hola') }
+      context 'set all fields' do
+        let(:validation_params) { { login: 'hola', name: 'Arturo' } }
+
+        its(:name) { is_expected.to eq('Arturo') }
+        its(:login) { is_expected.to eq('hola') }
+      end
+
+      context 'set empty field' do
+        let(:validation_params) { { login: 'hola', name: '' } }
+
+        its(:name) { is_expected.to eq('') }
+        its(:login) { is_expected.to eq('hola') }
+      end
+
+      context 'set one field' do
+        let(:validation_params) { { login: 'hola' } }
+
+        its(:name) { is_expected.to eq('Ricard') }
+        its(:login) { is_expected.to eq('hola') }
+      end
     end
   end
 

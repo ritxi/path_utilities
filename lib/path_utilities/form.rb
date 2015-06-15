@@ -20,6 +20,8 @@ module PathUtilities
 
       attr_reader :models_mapping
 
+      delegate :id, :persisted?, :new_record?, to: :main_record
+
       def initialize(models_mapping = {})
         @models_mapping = models_mapping
         validate_mapping!
@@ -34,17 +36,15 @@ module PathUtilities
       end
 
       def validate(params)
+        params = HashWithIndifferentAccess.new(params)
         self.class.fields.keys.each do |field|
-          if params[field].present?
-            send("#{field}=", params[field])
-          end
+          any_changes = params[field] &&
+                        params[field] != instance_model_for(field).send(field)
+          next unless any_changes
+          send("#{field}=", params[field])
         end
 
         valid?
-      end
-
-      def persisted?
-        false
       end
 
       def save
@@ -76,6 +76,10 @@ module PathUtilities
         end
       end
 
+      def main_record
+        models_mapping[self.class.model_name.name.to_sym]
+      end
+
       def persist!
         models_mapping.values.all?(&:save)
       end
@@ -84,42 +88,50 @@ module PathUtilities
 
     class_methods do
       def properties(attributes, model)
-        @attributes ||= {}
+        @@attributes ||= {}
         add_model(model)
         attributes.each do |att|
           already_define_attribute_warn(att, model) do
             attribute att, String
           end
 
-          @attributes[att] = model.to_s.camelize
+          @@attributes[att] = model.to_s.camelize
                                   .safe_constantize.fields[att.to_s]
         end
       end
 
+      def setup_model_name(name)
+        @@model_name = ActiveModel::Name.new(self, nil, name.to_s)
+      end
+
+      def model_name
+        @@model_name || fail('setup_model_name not set in form class')
+      end
+
       def fields
-        @attributes
+        @@attributes
       end
 
       def already_define_attribute_warn(attr, new_model)
-        if @attributes[attr].nil?
+        if fields[attr].nil?
           yield
         else
           Rails.logger.warn "#{attr} param already defined " \
-                            "for #{@attributes[attr]} model"
+                            "for #{fields[attr]} model"
 
-          return unless @attributes[attr] != new_model
+          return unless fields[attr] != new_model
           Rails.logger.warn "#{attr} now is mapped to #{new_model}"
         end
       end
 
       def models
-        @models ||= []
+        @@models ||= []
       end
 
       def add_model(name)
-        @models ||= []
-        return if @models.include?(name.to_sym)
-        @models << name.to_sym
+        @@models ||= []
+        return if @@models.include?(name.to_sym)
+        @@models << name.to_sym
       end
 
       def validates_uniqueness_of(attribute, options = {})
@@ -140,7 +152,7 @@ module PathUtilities
       end
 
       def model_for(attr)
-        @attributes[attr] && @attributes[attr].options[:klass]
+        fields[attr] && fields[attr].options[:klass]
       end
 
       # mongoid-encrypted-fields gem compatibility method
