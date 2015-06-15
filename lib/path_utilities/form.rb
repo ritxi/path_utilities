@@ -34,10 +34,12 @@ module PathUtilities
       end
 
       def validate(params)
+        params = HashWithIndifferentAccess.new(params)
         self.class.fields.keys.each do |field|
-          if params[field].present?
-            send("#{field}=", params[field])
-          end
+          any_changes = params[field] &&
+                        params[field] != instance_model_for(field).send(field)
+          next unless any_changes
+          send("#{field}=", params[field])
         end
 
         valid?
