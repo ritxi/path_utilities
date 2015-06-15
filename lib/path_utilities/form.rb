@@ -88,14 +88,14 @@ module PathUtilities
 
     class_methods do
       def properties(attributes, model)
-        @attributes ||= {}
+        @@attributes ||= {}
         add_model(model)
         attributes.each do |att|
           already_define_attribute_warn(att, model) do
             attribute att, String
           end
 
-          @attributes[att] = model.to_s.camelize
+          @@attributes[att] = model.to_s.camelize
                                   .safe_constantize.fields[att.to_s]
         end
       end
@@ -109,29 +109,29 @@ module PathUtilities
       end
 
       def fields
-        @attributes
+        @@attributes
       end
 
       def already_define_attribute_warn(attr, new_model)
-        if @attributes[attr].nil?
+        if fields[attr].nil?
           yield
         else
           Rails.logger.warn "#{attr} param already defined " \
-                            "for #{@attributes[attr]} model"
+                            "for #{fields[attr]} model"
 
-          return unless @attributes[attr] != new_model
+          return unless fields[attr] != new_model
           Rails.logger.warn "#{attr} now is mapped to #{new_model}"
         end
       end
 
       def models
-        @models ||= []
+        @@models ||= []
       end
 
       def add_model(name)
-        @models ||= []
-        return if @models.include?(name.to_sym)
-        @models << name.to_sym
+        @@models ||= []
+        return if @@models.include?(name.to_sym)
+        @@models << name.to_sym
       end
 
       def validates_uniqueness_of(attribute, options = {})
@@ -152,7 +152,7 @@ module PathUtilities
       end
 
       def model_for(attr)
-        @attributes[attr] && @attributes[attr].options[:klass]
+        fields[attr] && fields[attr].options[:klass]
       end
 
       # mongoid-encrypted-fields gem compatibility method
