@@ -40,6 +40,8 @@ Add a form for validating it
 class FormUser
   include PathUtilities::Form
 
+  setup_model_name :user
+
   properties [:login, :name, :password], :user
 
   validates_uniqueness_of :login
@@ -54,8 +56,7 @@ class MyController < ApplicationController
   before_action :build, on: [:new, :create]
 
   def create
-    if @form.validate(params[:user])
-      @form.save
+    if @form.validate(params[:user]) && @form.save
       redirect_to sign_in_path
     else
       render :new

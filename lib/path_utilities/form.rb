@@ -96,6 +96,14 @@ module PathUtilities
         end
       end
 
+      def setup_model_name(name)
+        @@model_name = ActiveModel::Name.new(self, nil, name.to_s)
+      end
+
+      def model_name
+        @@model_name || fail('setup_model_name not set in form class')
+      end
+
       def fields
         @attributes
       end
