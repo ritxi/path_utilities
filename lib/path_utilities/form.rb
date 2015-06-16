@@ -129,8 +129,8 @@ module PathUtilities
       end
 
       def add_model(name)
-        @@models ||= []
-        return if @@models.include?(name.to_sym)
+        models
+        return if models.include?(name.to_sym)
         @@models << name.to_sym
       end
 
