@@ -13,6 +13,12 @@ describe PathUtilities::Form do
     it { is_expected.to eq(MongoidTestUser) }
   end
 
+  describe '.model_name' do
+    subject { CustomForm.model_name.name }
+
+    it { is_expected.to eq('mongoid_test_user') }
+  end
+
   describe '.new' do
     describe 'requires all models to be mapped' do
       context 'nothing mapped' do
@@ -41,11 +47,19 @@ describe PathUtilities::Form do
     end
   end
 
+  describe '#main_record' do
+    subject { form.main_record }
+
+    it { is_expected.to eq(model) }
+  end
+
   describe '#validate' do
     subject { form }
 
     describe 'new record' do
-      it { expect(subject.validate(data_params)).to be_truthy }
+      subject { form.validate(data_params) }
+
+      it { is_expected.to be_truthy }
     end
 
     describe 'existing record' do
