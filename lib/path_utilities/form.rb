@@ -13,11 +13,14 @@ module PathUtilities
 
     included do
       include Virtus.model
-      extend ActiveModel::Naming
       include ActiveModel::Conversion
       include ActiveModel::Validations
+      include ActiveSupport::Configurable
       include TrackingChanges
 
+      config_accessor :model_name
+      config_accessor(:fields) { {} }
+      config_accessor(:models) { [] }
       attr_reader :models_mapping
 
       delegate :id, :persisted?, :new_record?, to: :main_record
@@ -28,88 +31,93 @@ module PathUtilities
         init_sync
       end
 
-      def validate_mapping!
-        self.class.models.each do |model|
-          next if models_mapping.keys.include?(model)
-          fail "#{model.to_s.camelize} not mapped on initialization"
-        end
-      end
-
       def validate(params)
         params = HashWithIndifferentAccess.new(params)
+
         self.class.fields.keys.each do |field|
           any_changes = params[field] &&
                         params[field] != instance_model_for(field).send(field)
           next unless any_changes
           send("#{field}=", params[field])
         end
-
         valid?
       end
 
-      def save
-        if valid?
-          sync
-          persist!
-          true
-        else
-          false
-        end
+      def self.setup_model_name(name)
+        self.model_name = ActiveModel::Name.new(self, nil, name.to_s)
       end
-
-      def sync
-        self.class.fields.keys.each do |field|
-          form_field_value = send(field)
-          instance_model_for(field).send("#{field}=", form_field_value)
-        end
-      end
-
-      def instance_model_for(field)
-        model = self.class.fields[field].options[:klass].name.underscore.to_sym
-        models_mapping[model]
-      end
-
-      def init_sync
-        self.class.fields.keys.each do |field|
-          model_value = instance_model_for(field).send("#{field}")
-          send("#{field}=", model_value)
-        end
-      end
-
-      def main_record
-        models_mapping[self.class.model_name.name.to_sym]
-      end
-
-      def persist!
-        models_mapping.values.all?(&:save)
-      end
-      private :persist!
     end
+
+    def validate_mapping!
+      self.class.models.each do |model|
+        next if models_mapping.keys.include?(model)
+        fail "#{model.to_s.camelize} not mapped on initialization"
+      end
+    end
+
+    def save
+      if valid?
+        sync
+        persist!
+        true
+      else
+        false
+      end
+    end
+
+    def sync
+      self.class.fields.keys.each do |field|
+        form_field_value = send(field)
+        instance_model_for(field).send("#{field}=", form_field_value)
+      end
+    end
+
+    def instance_model_for(field)
+      model = self.class.fields[field].options[:klass].name.underscore.to_sym
+      models_mapping[model]
+    end
+
+    def init_sync
+      self.class.fields.keys.each do |field|
+        model_value = instance_model_for(field).send("#{field}")
+        send("#{field}=", model_value)
+      end
+    end
+
+    def main_record
+      self.class.model_name || fail('setup_model_name not set in form class')
+      models_mapping[self.class.model_name.name.to_sym]
+    end
+
+    def persist!
+      models_mapping.values.all?(&:save)
+    end
+    private :persist!
 
     class_methods do
       def properties(attributes, model)
-        @@attributes ||= {}
         add_model(model)
         attributes.each do |att|
           already_define_attribute_warn(att, model) do
             attribute att, String
           end
 
-          @@attributes[att] = model.to_s.camelize
-                                  .safe_constantize.fields[att.to_s]
+          set_attribute(att, model.to_s.camelize
+                             .safe_constantize.fields[att.to_s])
         end
       end
 
-      def setup_model_name(name)
-        @@model_name = ActiveModel::Name.new(self, nil, name.to_s)
+      def add_model(name)
+        return if self.models.include?(name.to_sym)
+        existing_models = models
+        existing_models << name.to_sym
+        self.models = existing_models
       end
 
-      def model_name
-        @@model_name || fail('setup_model_name not set in form class')
-      end
-
-      def fields
-        @@attributes
+      def set_attribute(name, value)
+        existing_fields = self.fields
+        existing_fields[name] = value
+        self.fields = existing_fields
       end
 
       def already_define_attribute_warn(attr, new_model)
@@ -122,16 +130,6 @@ module PathUtilities
           return unless fields[attr] != new_model
           Rails.logger.warn "#{attr} now is mapped to #{new_model}"
         end
-      end
-
-      def models
-        @@models ||= []
-      end
-
-      def add_model(name)
-        models
-        return if models.include?(name.to_sym)
-        @@models << name.to_sym
       end
 
       def validates_uniqueness_of(attribute, options = {})
