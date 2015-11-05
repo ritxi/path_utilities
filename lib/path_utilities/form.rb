@@ -97,13 +97,24 @@ module PathUtilities
     class_methods do
       def properties(attributes, model)
         add_model(model)
-        attributes.each do |att|
+        attributes.each do |value|
+          att, type = attr_and_type(value)
           already_define_attribute_warn(att, model) do
-            attribute att, String
+            attribute att, type
           end
 
           set_attribute(att, model.to_s.camelize
                              .safe_constantize.fields[att.to_s])
+        end
+      end
+
+      def attr_and_type(value)
+        case value
+        when String, Symbol
+          [value, String]
+        when Hash
+          values = value.to_a.first
+          [values.first, values.last.safe_constantize]
         end
       end
 
