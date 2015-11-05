@@ -31,6 +31,7 @@ class User
   field :login
   field :password
   field :name
+  field :active
 end
 ```
 
@@ -42,7 +43,7 @@ class FormUser
 
   setup_model_name :user
 
-  properties [:login, :name, :password], :user
+  properties [:login, :name, :password, { active: 'Boolean' }], :user
 
   validates_uniqueness_of :login
   validates_presence_of :name, :password

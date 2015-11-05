@@ -67,10 +67,11 @@ describe PathUtilities::Form do
       before { subject.validate(validation_params) }
 
       context 'set all fields' do
-        let(:validation_params) { { login: 'hola', name: 'Arturo' } }
-
+        let(:validation_params) { { login: 'hola', name: 'Arturo', foo: date } }
+        let(:date) { Time.now }
         its(:name) { is_expected.to eq('Arturo') }
         its(:login) { is_expected.to eq('hola') }
+        its(:foo) { is_expected.to eq(date) }
       end
 
       context 'set empty field' do
