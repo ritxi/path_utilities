@@ -21,7 +21,7 @@ describe PathUtilities::Form::UniquenessValidator::Mongoid do
     context 'login has already been taken' do
       let(:validation_params) { { login: 'ricard' } }
       let(:already_taken_message) do
-        I18n.t('activemodel.errors.models.custom_form.attributes.login.taken')
+        I18n.t('activemodel.errors.models.mongoid_test_user.attributes.login.taken')
       end
 
       it { is_expected.not_to be_empty }
